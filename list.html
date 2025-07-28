@@ -7,17 +7,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #fff; margin: 0; padding: 0;}
-
-.container {
-  width: 100%;
-  margin: 38px 0;
-  background: #fff;
-  padding: 32px 20px 22px 20px;
-  border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
-}
-
-  
+    .container {
+      width: 100%;
+      margin: 38px 0;
+      background: #fff;
+      padding: 32px 20px 22px 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+    }
     .title-img { display: flex; justify-content: center; margin-bottom: 14px;}
     .title-img img { height: 52px; }
     .header-title { text-align: center; font-size: 1.5em; font-weight: bold; font-family: 'Segoe UI',sans-serif; margin: 0 0 22px 0; letter-spacing: 0.02em;}
@@ -29,7 +26,7 @@
     }
     .controls button:nth-child(2) { background: #47ba76;}
     .table-wrap { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 940px;}
+    table { border-collapse: collapse; width: 100%; min-width: 1040px;}
     th, td { border: 1px solid #e6eaf2; padding: 8px 7px; text-align: center; font-size: 1em;}
     th { background: #f3f7fc; font-weight: bold;}
     tr:nth-child(even) { background: #fafcff;}
@@ -63,13 +60,15 @@
       background: #fcfcfa;
       font-size: 0.98em;
     }
+    .program-cell, th.program-cell { min-width: 80px; }
     @media (max-width:1100px) { .container { max-width:99vw; padding:10px; } }
-    @media (max-width:900px) { table { font-size:0.97em; min-width:700px;} }
+    @media (max-width:900px) { table { font-size:0.97em; min-width:800px;} }
     @media (max-width:700px) {
       .container { padding:2px;}
       .header-title { font-size: 1.15em; }
-      table { font-size:0.95em; min-width:520px;}
+      table { font-size:0.95em; min-width:600px;}
       .memo-cell { min-width:70px; max-width:120px; }
+      .program-cell, th.program-cell { min-width: 55px; }
     }
   </style>
 </head>
@@ -92,6 +91,7 @@
             <th class="nowrap-td">연락처</th>
             <th class="nowrap-td">날짜</th>
             <th class="nowrap-td">시간</th>
+            <th class="program-cell">프로그램</th>
             <th class="opt-cell">옵션</th>
             <th class="nowrap-td">예약경로</th>
             <th class="nowrap-td">금액</th>
@@ -101,7 +101,7 @@
           </tr>
         </thead>
         <tbody id="resTbody">
-          <tr><td colspan="12">로딩 중...</td></tr>
+          <tr><td colspan="13">로딩 중...</td></tr>
         </tbody>
       </table>
     </div>
@@ -123,7 +123,7 @@
 
     async function renderTable() {
       const tbody = document.getElementById('resTbody');
-      tbody.innerHTML = `<tr><td colspan="12">불러오는 중...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13">불러오는 중...</td></tr>`;
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
@@ -131,11 +131,11 @@
         .order('time', { ascending: true });
 
       if (error || !data) {
-        tbody.innerHTML = `<tr><td colspan="12" style="color:red;">예약을 불러올 수 없습니다.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="color:red;">예약을 불러올 수 없습니다.</td></tr>`;
         return;
       }
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12">예약이 없습니다.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13">예약이 없습니다.</td></tr>`;
         return;
       }
       tbody.innerHTML = '';
@@ -148,6 +148,7 @@
           <td class="nowrap-td" title="${r.phone ?? ''}">${r.phone ?? ''}</td>
           <td class="nowrap-td" title="${r.date ?? ''}">${r.date ?? ''}</td>
           <td class="nowrap-td" title="${r.time ?? ''}">${r.time ?? ''}</td>
+          <td class="program-cell" title="${r.program ?? ''}">${r.program ?? '-'}</td>
           <td class="opt-cell">${optBadges(r)}</td>
           <td class="nowrap-td" title="${r.channel ?? ''}">${r.channel ?? ''}</td>
           <td class="nowrap-td" title="${r.amount ?? ''}">${r.amount ?? ''}</td>
