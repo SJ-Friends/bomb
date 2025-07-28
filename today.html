@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>예약 상세 보기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 20px; padding: 0; background: #fff; color: #222; }
+    h2 { margin-bottom: 20px; }
+    .res-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #f9f9f9;
+    }
+    .res-box strong { color: #0d6efd; }
+    .res-box .field { margin-bottom: 6px; }
+    .back-btns {
+      margin-top: 30px;
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+    }
+    .calendar-btn { background: #1d90ff; }
+    .list-btn { background: #26b66c; }
+    .calendar-btn:hover { background: #146fcc; }
+    .list-btn:hover { background: #189052; }
+    a.phone-icon, a.sms-icon {
+      text-decoration: none;
+      margin-left: 8px;
+      font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="dateTitle">예약 상세</h2>
+  <div id="resContainer">불러오는 중...</div>
+  <div class="back-btns">
+    <button class="btn calendar-btn" onclick="location.href='calendar.html'">← 캘린더로</button>
+    <button class="btn list-btn" onclick="location.href='list.html'">→ 전체 목록</button>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://xxmtxuhcdzidhrefrvwf.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
+    );
+
+    const params = new URLSearchParams(location.search);
+    const selectedDate = params.get("date");
+    document.getElementById('dateTitle').textContent = `${selectedDate} 예약 목록`;
+
+    async function loadReservations() {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('date', selectedDate)
+        .order('time', { ascending: true });
+
+      const container = document.getElementById('resContainer');
+      container.innerHTML = '';
+
+      if (error) {
+        container.innerHTML = '<p>데이터를 불러오는 중 오류가 발생했습니다.</p>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p>예약이 없습니다.</p>';
+        return;
+      }
+
+      data.forEach(res => {
+        const box = document.createElement('div');
+        box.className = 'res-box';
+        box.innerHTML = `
+          <div class="field"><strong>예약번호:</strong> ${res.id}</div>
+          <div class="field"><strong>이름:</strong> ${res.name}</div>
+          <div class="field"><strong>연락처:</strong> 
+            ${res.phone || '-'}
+            ${res.phone ? `
+              <a class="phone-icon" href="tel:${res.phone}" title="전화하기">📞</a>
+              <a class="sms-icon" href="sms:${res.phone}" title="문자보내기">💬</a>
+            ` : ''}
+          </div>
+          <div class="field"><strong>인원 수:</strong> ${res.people_count || '-'}</div>
+          <div class="field"><strong>시간:</strong> ${res.time || '-'}</div>
+          <div class="field"><strong>프로그램:</strong> ${res.program || '-'}</div>
+          <div class="field"><strong>옵션:</strong> 
+            ${res.lesson ? '강습 ' : ''} 
+            ${res.board ? '보드 ' : ''} 
+            ${res.suit ? '슈트 ' : ''} 
+            ${res.shower ? '샤워' : ''}
+          </div>
+          <div class="field"><strong>예약경로:</strong> ${res.channel || '-'}</div>
+          <div class="field"><strong>금액:</strong> ${res.amount || 0}원</div>
+          <div class="field"><strong>결제상태:</strong> ${res.payment || '-'}</div>
+          <div class="field"><strong>메모:</strong> ${res.memo || '-'}</div>
+          <button onclick="location.href='update.html?id=${res.id}'">수정하기</button>
+        `;
+        container.appendChild(box);
+      });
+    }
+
+    loadReservations();
+  </script>
+</body>
+</html>
