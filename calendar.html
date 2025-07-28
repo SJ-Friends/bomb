@@ -322,7 +322,10 @@
               r.name +
               (r.people_count ? `(${r.people_count})` : '') +
               (r.time ? ` ${r.time}` : '');
-            li.onclick = ()=>{ window.location.href = `update.html?id=${r.id}`; };
+           li.onclick = (e)=> {
+  e.stopPropagation(); // 부모 셀 클릭 이벤트 방지
+  window.location.href = `update.html?id=${r.id}`;
+};
             ul.appendChild(li);
           });
           cell.appendChild(ul);
