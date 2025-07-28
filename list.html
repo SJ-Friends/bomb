@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BOMB SURF 예약 전체 목록</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #fff; margin: 0; padding: 0;}
+
+.container {
+  width: 100%;
+  margin: 38px 0;
+  background: #fff;
+  padding: 32px 20px 22px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+}
+
+  
+    .title-img { display: flex; justify-content: center; margin-bottom: 14px;}
+    .title-img img { height: 52px; }
+    .header-title { text-align: center; font-size: 1.5em; font-weight: bold; font-family: 'Segoe UI',sans-serif; margin: 0 0 22px 0; letter-spacing: 0.02em;}
+    .controls { display: flex; gap: 10px; margin-bottom: 18px;}
+    .controls button {
+      background: #256aff; color: #fff; border: none; border-radius: 7px;
+      font-size: 1em; font-weight: bold; padding: 9px 16px; cursor:pointer;
+      transition: background 0.16s;
+    }
+    .controls button:nth-child(2) { background: #47ba76;}
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 940px;}
+    th, td { border: 1px solid #e6eaf2; padding: 8px 7px; text-align: center; font-size: 1em;}
+    th { background: #f3f7fc; font-weight: bold;}
+    tr:nth-child(even) { background: #fafcff;}
+    tr:hover { background: #e6f0ff; }
+    .btn-group { display:flex; gap:6px; justify-content:center; }
+    .edit-btn, .del-btn {
+      padding: 5px 13px; font-size: 0.96em; border:none; border-radius: 5px; cursor:pointer;
+      font-weight: 600;
+    }
+    .edit-btn { background: #fff9df; color: #9a7100; border:1px solid #ffe199;}
+    .del-btn { background: #fff0f0; color: #dc4545; border:1px solid #ffd3d3;}
+    .opt-badge { padding:1px 6px; border-radius:6px; font-size:0.97em; margin-right:2px; display:inline-block;}
+    .opt-lesson { background:#fff3b8; color:#7b6300;}
+    .opt-board { background:#d8eeff; color:#1b5a8a;}
+    .opt-suit { background:#e4ddf6; color:#4a3880;}
+    .opt-shower { background:#cdf8e5; color:#157a62;}
+    .nowrap-td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    .opt-cell, th.opt-cell { min-width: 120px;}
+    .btn-group, th.btn-group { min-width: 110px;}
+    .memo-cell {
+      min-width: 140px;
+      max-width: 240px;
+      white-space: normal;
+      word-break: break-all;
+      text-align: left;
+      background: #fcfcfa;
+      font-size: 0.98em;
+    }
+    @media (max-width:1100px) { .container { max-width:99vw; padding:10px; } }
+    @media (max-width:900px) { table { font-size:0.97em; min-width:700px;} }
+    @media (max-width:700px) {
+      .container { padding:2px;}
+      .header-title { font-size: 1.15em; }
+      table { font-size:0.95em; min-width:520px;}
+      .memo-cell { min-width:70px; max-width:120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-img">
+      <img src="title.jpg" alt="BOMB SURF">
+    </div>
+      <div class="controls">
+      <button onclick="location.href='calendar.html'">캘린더로 가기</button>
+      <button onclick="location.href='input.html'">+ 새 예약 등록</button>
+    </div>
+    <div class="table-wrap">
+      <table id="resTable">
+        <thead>
+          <tr>
+            <th class="nowrap-td">예약번호</th>
+            <th class="nowrap-td">이름</th>
+            <th class="nowrap-td">인원</th>
+            <th class="nowrap-td">연락처</th>
+            <th class="nowrap-td">날짜</th>
+            <th class="nowrap-td">시간</th>
+            <th class="opt-cell">옵션</th>
+            <th class="nowrap-td">예약경로</th>
+            <th class="nowrap-td">금액</th>
+            <th class="nowrap-td">결제</th>
+            <th class="memo-cell">메모</th>
+            <th class="btn-group">관리</th>
+          </tr>
+        </thead>
+        <tbody id="resTbody">
+          <tr><td colspan="12">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://xxmtxuhcdzidhrefrvwf.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
+    );
+
+    function optBadges(r) {
+      let out = '';
+      if(r.lesson) out += '<span class="opt-badge opt-lesson">강습</span>';
+      if(r.board) out += '<span class="opt-badge opt-board">보드</span>';
+      if(r.suit) out += '<span class="opt-badge opt-suit">슈트</span>';
+      if(r.shower) out += '<span class="opt-badge opt-shower">샤워</span>';
+      return out || '-';
+    }
+
+    async function renderTable() {
+      const tbody = document.getElementById('resTbody');
+      tbody.innerHTML = `<tr><td colspan="12">불러오는 중...</td></tr>`;
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('time', { ascending: true });
+
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="12" style="color:red;">예약을 불러올 수 없습니다.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12">예약이 없습니다.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = '';
+      data.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="nowrap-td" title="${r.id ?? ''}">${r.id ?? ''}</td>
+          <td class="nowrap-td" title="${r.name ?? ''}">${r.name ?? ''}</td>
+          <td class="nowrap-td" title="${r.people_count ?? ''}">${r.people_count ?? ''}</td>
+          <td class="nowrap-td" title="${r.phone ?? ''}">${r.phone ?? ''}</td>
+          <td class="nowrap-td" title="${r.date ?? ''}">${r.date ?? ''}</td>
+          <td class="nowrap-td" title="${r.time ?? ''}">${r.time ?? ''}</td>
+          <td class="opt-cell">${optBadges(r)}</td>
+          <td class="nowrap-td" title="${r.channel ?? ''}">${r.channel ?? ''}</td>
+          <td class="nowrap-td" title="${r.amount ?? ''}">${r.amount ?? ''}</td>
+          <td class="nowrap-td" title="${r.payment ?? ''}">${r.payment ?? ''}</td>
+          <td class="memo-cell" title="${r.memo ? r.memo.replace(/"/g, '&quot;').replace(/\n/g, ' / ') : ''}">
+            ${r.memo ? r.memo.replace(/\n/g,'<br>') : ''}
+          </td>
+          <td class="btn-group">
+            <button class="edit-btn" onclick="location.href='update.html?id=${r.id}'">수정</button>
+            <button class="del-btn" onclick="delRes(${r.id}, this)">삭제</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function delRes(id, btn) {
+      if(!confirm('정말 삭제하시겠습니까?')) return;
+      btn.disabled = true;
+      btn.textContent = '삭제중...';
+      const { error } = await supabase.from('reservations').delete().eq('id', id);
+      if(error) {
+        alert('삭제 실패: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '삭제';
+      } else {
+        btn.closest('tr').remove();
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
