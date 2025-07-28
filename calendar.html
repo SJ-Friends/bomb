@@ -120,6 +120,7 @@
       color: #212325;
       margin-bottom: 1px;
       text-align: right;
+      letter-spacing: 0.01em;
     }
     .res-list { margin: 0; padding: 0; list-style: none;}
     .res-item {
@@ -135,6 +136,7 @@
     }
     .res-item.lesson {
       background: #ffe5b4 !important;
+      color: #111;
     }
     .res-item:hover { background: #c1eed6;}
     .res-item.lesson:hover { background: #ffd488 !important;}
@@ -149,6 +151,7 @@
       border-radius: 4px;
       margin-right: 6px;
       border: 1px solid #e3e3e3;
+      vertical-align: middle;
     }
     .legend-lesson { background: #ffe5b4; border: 1px solid #ffe5b4;}
     .legend-rental { background: #e9f7ef; border: 1px solid #e9f7ef;}
@@ -189,7 +192,13 @@
     let currYear = today.getFullYear();
     let currMonth = today.getMonth();
 
-    function fmtDate(d) { return d.toISOString().slice(0,10); }
+    // ← 이 함수만 바뀌었습니다!
+    function fmtDate(d) {
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      return `${y}-${(m<10?'0':'')+m}-${(day<10?'0':'')+day}`;
+    }
     function z(n) { return n < 10 ? '0'+n : n; }
     const weekNames = ['일','월','화','수','목','금','토'];
     let reservations = [];
@@ -198,15 +207,15 @@
       document.getElementById('calendarGrid').innerHTML = '';
 
       const firstDay = new Date(currYear, currMonth, 1);
-      const dayAfterLast = new Date(currYear, currMonth + 1, 1);
+      const lastDay = new Date(currYear, currMonth + 1, 0);
       const fromDate = fmtDate(firstDay);
-      const toDate = fmtDate(dayAfterLast);
+      const toDate = fmtDate(lastDay); // 마지막날 포함
 
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
         .gte('date', fromDate)
-        .lt('date', toDate)
+        .lte('date', toDate)   // lte 사용 ✔️
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
@@ -220,7 +229,7 @@
       });
 
       const startDay = firstDay.getDay();
-      const daysInMonth = new Date(currYear, currMonth + 1, 0).getDate();
+      const daysInMonth = lastDay.getDate();
 
       for (let i = 0; i < startDay; i++) {
         const cell = document.createElement('div');
@@ -232,7 +241,10 @@
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = currYear + '-' + z(currMonth + 1) + '-' + z(d);
-        const dayRes = reservations.filter(r => r.date === dateStr);
+        const dayRes = reservations.filter(r =>
+          r.date && r.date.slice(0,10) === dateStr
+        );
+
         const cell = document.createElement('div');
         cell.className = 'cal-cell' + (dateStr === fmtDate(today) ? ' today' : '');
         cell.setAttribute('data-date', dateStr);
@@ -251,7 +263,7 @@
             li.textContent = r.name +
               (r.people_count ? `(${r.people_count})` : '') +
               (r.time ? ` ${r.time}` : '');
-            li.onclick = (e) => {
+            li.onclick = e => {
               e.stopPropagation();
               window.location.href = `update.html?id=${r.id}`;
             };
