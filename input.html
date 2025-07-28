@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BOMB SURF 예약 입력</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px; 
+      margin: 38px auto; 
+      background: #fff; 
+      padding: 32px 24px 22px 24px; 
+      border-radius: 12px; 
+      box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+    }
+    .title-img {
+      display: flex; justify-content: center; margin-bottom: 24px;
+    }
+    form .row {
+      display: flex; align-items: center; margin-bottom: 15px;
+    }
+    label {
+      min-width: 75px;
+      margin-right: 14px;
+      font-weight: bold;
+      font-size: 1em;
+      white-space: nowrap;
+    }
+    input[type="text"], input[type="number"], input[type="date"], select {
+      flex: 1;
+      padding: 7px 9px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #fafbfc;
+      margin-right: 0;
+    }
+    select { min-width: 82px; }
+    input[type="time"] { min-width: 90px; }
+    .options-row, .channel-row {
+      display: flex; align-items: center; gap: 17px;
+    }
+    .options-row label, .channel-row label {
+      margin-right: 2px; font-weight: normal; min-width: unset;
+    }
+    textarea {
+      width: 100%; min-height: 50px; resize: vertical;
+      border-radius: 6px; border: 1px solid #ccc;
+      font-size: 1em; padding: 8px;
+      margin-top: 2px;
+    }
+    .btns {
+      display: flex; gap: 10px; margin-top: 22px;
+    }
+    button {
+      flex: 1;
+      padding: 12px 0; background: #256aff;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.06em; cursor: pointer; font-weight: bold;
+      transition: background 0.18s;
+    }
+    button:disabled { background: #bbb;}
+    .btns button:nth-child(2) { background: #f1b90c; color: #333;}
+    .btns button:nth-child(3) { background: #47ba76;}
+    #result { text-align: center; margin-top: 12px; min-height: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-img">
+      <img src="title.jpg" alt="BOMB SURF" style="height:56px;">
+    </div>
+    <form id="reservationForm" autocomplete="off">
+      <div class="row">
+        <label>이름</label>
+        <input type="text" name="name" required />
+      </div>
+      <div class="row">
+        <label>인원</label>
+        <input type="number" name="people_count" min="1" required />
+      </div>
+      <div class="row">
+        <label>연락처</label>
+        <input type="text" name="phone" required />
+      </div>
+      <div class="row">
+        <label>날짜</label>
+        <input type="date" name="date" required />
+      </div>
+      <div class="row">
+        <label>시간</label>
+        <select name="time" required>
+          <option value="">선택</option>
+          <option value="09:00">09:00</option>
+          <option value="09:30">09:30</option>
+          <option value="10:00">10:00</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="11:30">11:30</option>
+          <option value="12:00">12:00</option>
+          <option value="12:30">12:30</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:00">14:00</option>
+          <option value="14:30">14:30</option>
+          <option value="15:00">15:00</option>
+          <option value="15:30">15:30</option>
+          <option value="16:00">16:00</option>
+          <option value="16:30">16:30</option>
+          <option value="17:00">17:00</option>
+          <option value="17:30">17:30</option>
+          <option value="18:00">18:00</option>
+          <option value="18:30">18:30</option>
+        </select>
+      </div>
+      <div class="row options-row">
+        <label>옵션</label>
+        <label><input type="checkbox" name="lesson" /> 강습</label>
+        <label><input type="checkbox" name="board" /> 보드</label>
+        <label><input type="checkbox" name="suit" /> 슈트</label>
+        <label><input type="checkbox" name="shower" /> 샤워</label>
+      </div>
+      <div class="row channel-row">
+        <label>예약경로</label>
+        <label><input type="radio" name="channel" value="네이버" required /> 네이버</label>
+        <label><input type="radio" name="channel" value="전화" required /> 전화</label>
+        <label><input type="radio" name="channel" value="기타" required /> 기타</label>
+      </div>
+      <div class="row">
+        <label>금액</label>
+        <input type="number" name="amount" min="0" />
+      </div>
+      <div class="row">
+        <label>결제정보</label>
+        <select name="payment" required>
+          <option value="">선택</option>
+          <option value="결제완료">결제완료</option>
+          <option value="결제예정">결제예정</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="row" style="align-items:flex-start;">
+        <label style="margin-top:9px;">메모</label>
+        <textarea name="memo" rows="2"></textarea>
+      </div>
+      <div class="btns">
+        <button type="submit">예약등록</button>
+        <button type="button" id="resetBtn" style="background:#f1b90c; color:#222;">초기화</button>
+        <button type="button" id="calendarBtn" style="background:#47ba76;">캘린더가기</button>
+      </div>
+      <div id="result"></div>
+    </form>
+  </div>
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://xxmtxuhcdzidhrefrvwf.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
+    );
+
+    // 등록
+    document.getElementById('reservationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        name: form.name.value,
+        people_count: Number(form.people_count.value),
+        phone: form.phone.value,
+        date: form.date.value,
+        time: form.time.value,
+        program: '', // 필요시 프로그램 컬럼 추가
+        lesson: form.lesson.checked,
+        board: form.board.checked,
+        suit: form.suit.checked,
+        shower: form.shower.checked,
+        channel: form.channel.value,
+        amount: form.amount.value ? Number(form.amount.value) : null,
+        payment: form.payment.value,
+        memo: form.memo.value
+      };
+
+      const { error } = await supabase.from('reservations').insert([data]);
+      const resultDiv = document.getElementById('result');
+      if (error) {
+        resultDiv.innerHTML = `<span style="color:red;">저장 실패: ${error.message}</span>`;
+      } else {
+        resultDiv.innerHTML = '<span style="color:green;">예약이 등록되었습니다!</span>';
+        form.reset();
+      }
+    });
+
+    // 초기화
+    document.getElementById('resetBtn').onclick = () => {
+      document.getElementById('reservationForm').reset();
+      document.getElementById('result').innerHTML = '';
+    };
+
+    // 캘린더로 이동 (URL 수정 필요)
+    document.getElementById('calendarBtn').onclick = () => {
+      window.location.href = "calendar.html"; // 실제 캘린더 페이지 주소로 수정
+    };
+  </script>
+</body>
+</html>

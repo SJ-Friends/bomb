@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BOMB SURF 예약 캘린더</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #fff; margin: 0; padding: 0; }
+    .container { max-width: 660px; margin: 38px auto; background: #fff; padding: 32px 20px 20px 20px; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.07);}
+    .title-img { display: flex; justify-content: center; margin-bottom: 24px;}
+    .calendar-wrap { margin: auto; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;}
+    .cal-header { text-align: center; font-weight: bold; background: #f8f8fc; padding: 7px 0; border-radius: 5px; font-size:1em; }
+    .cal-cell {
+      background: #fafdff; border-radius: 6px; min-height: 65px; padding: 4px 3px 2px 3px;
+      font-size: 0.97em; position: relative; cursor:pointer; border:1px solid #f3f3f3;
+      display:flex; flex-direction:column;
+    }
+    .cal-cell.today { border: 2px solid #256aff; }
+    .cal-date { font-size: 0.95em; font-weight: bold; color: #888; margin-bottom: 1px; }
+    .res-list { margin: 0; padding: 0; list-style: none;}
+    .res-item {
+      background: #e8f2ff;
+      border-radius: 7px;
+      margin: 2px 0; padding: 4px 8px 4px 8px;
+      font-weight: 500; color: #18325b;
+      font-size: 0.93em;
+      display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      border-left: 5px solid #84bfff;
+      letter-spacing:0.01em;
+      transition: background 0.15s, border 0.15s;
+    }
+    .res-item.lesson {
+      background: #fff9df !important;
+      border-left: 5px solid #ffe199 !important;
+      color: #9a7100;
+    }
+    .res-name {
+      color: #256aff;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      margin-right: 4px;
+      font-size: 1em;
+      transition: color 0.15s;
+    }
+    .res-name:hover { color: #2e72d2; }
+    .add-btn { margin: 16px 0 8px 0; width: 100%; background: #47ba76; color: #fff; border: none; border-radius: 8px; padding: 11px 0; font-size: 1.07em; font-weight:bold; cursor: pointer;}
+    .month-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 10px;}
+    .month-nav button { border: none; background: #f2f6fd; font-size: 1.15em; border-radius: 6px; padding: 7px 15px; cursor:pointer;}
+    .modal-bg { display: none; position: fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(40,56,86,0.36); z-index:99; align-items: center; justify-content: center;}
+    .modal-box { background: #fff; border-radius: 13px; padding: 22px 20px 16px 20px; max-width: 350px; width:92vw; box-shadow: 0 8px 28px rgba(60,80,100,0.13);}
+    .modal-title { font-weight: bold; font-size:1.13em; margin-bottom: 12px; }
+    .modal-close { background: none; border: none; font-size: 1.5em; color: #999; position: absolute; top: 11px; right: 13px; cursor:pointer;}
+    .modal-listitem {
+      background: #e8f2ff;
+      border-radius: 7px;
+      padding: 8px 10px 8px 10px;
+      margin: 6px 0;
+      font-size:0.95em;
+      font-weight:500; color:#18325b;
+      border-left: 5px solid #84bfff;
+      display:flex; flex-direction:column; align-items:flex-start; white-space:normal;
+      letter-spacing:0.01em;
+      transition: background 0.15s, border 0.15s;
+    }
+    .modal-listitem.lesson {
+      background: #fff9df !important;
+      border-left: 5px solid #ffe199 !important;
+      color: #9a7100;
+    }
+    .modal-name {
+      color: #256aff;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      margin-right: 6px;
+      font-size: 1em;
+      transition: color 0.15s;
+    }
+    .modal-row { display: flex; align-items:center; gap:8px; margin-bottom:2px; flex-wrap: wrap;}
+    .modal-memo { color: #747c8a; font-size:0.98em; margin-left: 3px;}
+    .modal-label { color:#888; font-size:0.96em;}
+    .modal-listitem:last-child {margin-bottom:0;}
+    .modal-name:hover { color: #2e72d2; }
+    @media (max-width: 740px) {
+      .container { max-width:99vw; padding: 10px; }
+      .calendar { grid-template-columns: repeat(7, 1fr);}
+      .modal-box { max-width:97vw;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-img">
+      <img src="title.jpg" alt="BOMB SURF" style="height:56px;">
+    </div>
+    <div class="month-nav">
+      <button type="button" id="prevMonth">&lt;</button>
+      <span id="monthLabel"></span>
+      <button type="button" id="nextMonth">&gt;</button>
+    </div>
+    <div class="calendar-wrap">
+      <div class="calendar" id="calendarGrid"></div>
+    </div>
+    <button class="add-btn" onclick="location.href='input.html'">+ 예약 입력</button>
+  </div>
+  <!-- 예약 상세 모달 -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" id="modalCloseBtn">&times;</button>
+      <div class="modal-title" id="modalTitle"></div>
+      <ul class="res-list" id="modalResList"></ul>
+    </div>
+  </div>
+  <script>
+    // Supabase 설정
+    const supabase = window.supabase.createClient(
+      'https://xxmtxuhcdzidhrefrvwf.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
+    );
+
+    let today = new Date();
+    let currYear = today.getFullYear();
+    let currMonth = today.getMonth();
+
+    function fmtDate(d) { return d.toISOString().slice(0,10);}
+    function z(n) { return n<10?'0'+n:n; }
+    const weekNames = ['일','월','화','수','목','금','토'];
+
+    let reservations = [];
+
+    // 달력 렌더
+    async function renderCalendar() {
+      document.getElementById('calendarGrid').innerHTML = '';
+      // 해당월 예약 불러오기
+      const firstDay = new Date(currYear, currMonth, 1);
+      const lastDay = new Date(currYear, currMonth+1, 0);
+      const fromDate = fmtDate(firstDay);
+      const toDate = fmtDate(lastDay);
+
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .gte('date', fromDate)
+        .lte('date', toDate)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+
+      reservations = data || [];
+
+      // 달력 헤더
+      weekNames.forEach(w => {
+        const cell = document.createElement('div');
+        cell.className = 'cal-header';
+        cell.textContent = w;
+        document.getElementById('calendarGrid').appendChild(cell);
+      });
+
+      // 첫 요일
+      const startDay = firstDay.getDay();
+      const daysInMonth = lastDay.getDate();
+      for(let i=0; i<startDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        cell.style.background = 'transparent';
+        cell.style.cursor = 'default';
+        document.getElementById('calendarGrid').appendChild(cell);
+      }
+
+      for(let d=1; d<=daysInMonth; d++) {
+        const dateStr = currYear+'-'+z(currMonth+1)+'-'+z(d);
+        const dayRes = reservations.filter(r=>r.date===dateStr);
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell' + (dateStr === fmtDate(today) ? ' today' : '');
+        cell.setAttribute('data-date', dateStr);
+
+        // 날짜
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'cal-date';
+        dateDiv.textContent = d;
+        cell.appendChild(dateDiv);
+
+        // 예약 목록
+        if(dayRes.length > 0){
+          const ul = document.createElement('ul');
+          ul.className = 'res-list';
+          dayRes.forEach(r=>{
+            const li = document.createElement('li');
+            li.className = 'res-item' + (r.lesson ? ' lesson' : '');
+            // 이름(인원) 클릭시 update, 밑줄X, 파란색, 손가락 커서
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'res-name';
+            nameSpan.textContent = r.name + (r.people_count ? '('+r.people_count+')' : '');
+            nameSpan.onclick = e => {
+              e.stopPropagation();
+              window.location.href = `update.html?id=${r.id}`;
+            };
+            const timeTxt = document.createTextNode(' ' + (r.time ? r.time : ''));
+            li.appendChild(nameSpan);
+            li.appendChild(timeTxt);
+            ul.appendChild(li);
+          });
+          cell.appendChild(ul);
+        }
+        // 날짜 클릭 시 모달
+        cell.onclick = ()=>{
+          openModal(dateStr);
+        };
+
+        document.getElementById('calendarGrid').appendChild(cell);
+      }
+    }
+
+    // 월 전후 이동
+    document.getElementById('prevMonth').onclick = ()=>{
+      if(currMonth===0) { currMonth=11; currYear--; }
+      else currMonth--;
+      updateMonthLabel();
+      renderCalendar();
+    };
+    document.getElementById('nextMonth').onclick = ()=>{
+      if(currMonth===11) { currMonth=0; currYear++; }
+      else currMonth++;
+      updateMonthLabel();
+      renderCalendar();
+    };
+    function updateMonthLabel() {
+      document.getElementById('monthLabel').textContent =
+        currYear + '년 ' + z(currMonth+1) + '월';
+    }
+
+    // 모달 열기 (이름/인원/시간/메모)
+    function openModal(dateStr) {
+      const modalBg = document.getElementById('modalBg');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalResList = document.getElementById('modalResList');
+      const list = reservations.filter(r=>r.date===dateStr);
+      modalTitle.textContent = `${dateStr} 예약 목록`;
+      modalResList.innerHTML = '';
+      if(list.length === 0){
+        modalResList.innerHTML = '<li>예약 없음</li>';
+      } else {
+        list.forEach(r=>{
+          const li = document.createElement('li');
+          li.className = 'modal-listitem' + (r.lesson ? ' lesson' : '');
+
+          // 이름(파란, 클릭 수정)
+          const row1 = document.createElement('div');
+          row1.className = 'modal-row';
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'modal-name';
+          nameSpan.textContent = r.name;
+          nameSpan.onclick = e => {
+            e.stopPropagation();
+            window.location.href = `update.html?id=${r.id}`;
+          };
+          row1.appendChild(nameSpan);
+
+          // 인원
+          const peopleSpan = document.createElement('span');
+          peopleSpan.className = 'modal-label';
+          peopleSpan.innerHTML = '👥 ' + (r.people_count || '-');
+          row1.appendChild(peopleSpan);
+
+          // 시간
+          const timeSpan = document.createElement('span');
+          timeSpan.className = 'modal-label';
+          timeSpan.innerHTML = '⏰ ' + (r.time || '-');
+          row1.appendChild(timeSpan);
+
+          li.appendChild(row1);
+
+          // 메모
+          const row2 = document.createElement('div');
+          row2.className = 'modal-row';
+          const memoLabel = document.createElement('span');
+          memoLabel.className = 'modal-label';
+          memoLabel.innerHTML = '✏️ 메모';
+          row2.appendChild(memoLabel);
+
+          const memoSpan = document.createElement('span');
+          memoSpan.className = 'modal-memo';
+          memoSpan.textContent = r.memo && r.memo.trim() ? r.memo : '-';
+          row2.appendChild(memoSpan);
+
+          li.appendChild(row2);
+
+          modalResList.appendChild(li);
+        });
+      }
+      modalBg.style.display = 'flex';
+    }
+    // 모달 닫기
+    document.getElementById('modalCloseBtn').onclick = function(){
+      document.getElementById('modalBg').style.display = 'none';
+    }
+    document.getElementById('modalBg').onclick = function(e){
+      if(e.target === this) this.style.display='none';
+    };
+
+    function init(){
+      updateMonthLabel();
+      renderCalendar();
+    }
+    init();
+  </script>
+</body>
+</html>
