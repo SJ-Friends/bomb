@@ -329,8 +329,8 @@
         }
         // 날짜 클릭 시 모달
         cell.onclick = ()=>{
-          openModal(dateStr);
-        };
+           window.location.href = `today.html?date=${dateStr}`;
+};
 
         document.getElementById('calendarGrid').appendChild(cell);
       }
@@ -354,38 +354,7 @@
         currYear + '년 ' + z(currMonth+1) + '월';
     }
 
-    // 모달 열기 (이름/인원/시간/메모)
-    function openModal(dateStr) {
-      const modalBg = document.getElementById('modalBg');
-      const modalTitle = document.getElementById('modalTitle');
-      const modalResList = document.getElementById('modalResList');
-      const list = reservations.filter(r=>r.date===dateStr);
-      modalTitle.textContent = `${dateStr} 예약 목록`;
-      modalResList.innerHTML = '';
-      if(list.length === 0){
-        modalResList.innerHTML = '<li>예약 없음</li>';
-      } else {
-        list.forEach(r=>{
-          const li = document.createElement('li');
-          li.className = r.lesson ? 'modal-listitem lesson' : 'modal-listitem';
-          li.textContent =
-            r.name +
-            (r.people_count ? `(${r.people_count})` : '') +
-            (r.time ? ` ${r.time}` : '');
-          modalResList.appendChild(li);
-        });
-      }
-      modalBg.style.display = 'flex';
-    }
-
-    // 모달 닫기
-    document.getElementById('modalCloseBtn').onclick = function(){
-      document.getElementById('modalBg').style.display = 'none';
-    }
-    document.getElementById('modalBg').onclick = function(e){
-      if(e.target === this) this.style.display='none';
-    };
-
+   
     function init(){
       updateMonthLabel();
       renderCalendar();
