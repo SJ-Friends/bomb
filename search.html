@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BOMB SURF 회원 검색</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #fff; margin: 0; padding: 0;}
+    .container {
+      width: 100%;
+      margin: 40px 0 0 0;
+      background: #fff;
+      padding: 32px 18px 24px 18px;
+      border-radius: 0;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.04);
+    }
+    .title-img { display: flex; justify-content: center; margin-bottom: 16px;}
+    .title-img img { height: 54px; }
+    h2 { text-align: center; font-size: 1.19em; margin: 0 0 24px 0; letter-spacing: 0.03em; color: #232323;}
+    .search-bar { display: flex; gap: 9px; margin-bottom: 26px; justify-content: center;}
+    .search-bar input[type="text"] {
+      font-size: 1.08em;
+      border: 1.5px solid #d2d7df;
+      border-radius: 7px;
+      padding: 7px 12px;
+      outline: none;
+      transition: border 0.14s;
+      min-width: 0;
+      width: 145px; /* 숫자 12~13자리(01012345678~) 충분 */
+    }
+    .search-bar input[type="text"]:focus { border: 1.5px solid #256aff;}
+    .search-bar button {
+      background: #256aff;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 18px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+      box-shadow: 0 1px 6px rgba(37,106,255,0.10);
+    }
+    .search-bar button:hover { background: #1d53b3;}
+    .result-wrap {
+      margin-top: 10px;
+      width: 80vw;       /* 80% of viewport */
+      max-width: 1300px;
+      min-width: 330px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      border-collapse: collapse; width: 100%;
+      min-width: 880px; margin-top: 6px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #e6eaf2; padding: 8px 8px; text-align: center; font-size: 1em;
+    }
+    th { background: #f5f7fb; font-weight: bold;}
+    tr:nth-child(even) { background: #fafcff;}
+    .memo-cell {
+      min-width: 90px;
+      max-width: 350px;
+      white-space: normal;
+      word-break: break-all;
+      text-align: left;
+      background: #fcfcfa;
+      font-size: 0.97em;
+    }
+    .edit-link {
+      color: #256aff;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+      transition: color 0.13s;
+    }
+    .edit-link:hover { color: #189052; }
+    .back-btn {
+      background: #1d90ff;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 22px;
+      font-size: 1em;
+      font-weight:600;
+      cursor: pointer;
+      transition: background 0.11s;
+      margin: 20px auto 0 auto;
+      display: block;
+      box-shadow: 0 2px 8px rgba(29,144,255,0.09);
+    }
+    .back-btn:hover { background: #146fcc;}
+    .no-result { text-align: center; color: #c04226; padding: 18px 0 0 0;}
+    @media (max-width:1200px) {
+      .result-wrap { width: 99vw; min-width: 0; }
+    }
+    @media (max-width:900px) {
+      .container { padding:6px;}
+      .result-wrap { width: 99vw; min-width: 0;}
+      table { min-width:600px;}
+      .memo-cell { max-width:120px; min-width:40px;}
+    }
+    @media (max-width:600px) {
+      .container { padding:3px;}
+      table { font-size:0.97em; min-width:400px;}
+      th, td { padding: 5px 3px;}
+      .memo-cell { max-width:70px; min-width:30px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-img">
+      <img src="title.jpg" alt="BOMB SURF">
+    </div>
+    <h2>회원 예약 검색</h2>
+    <form class="search-bar" id="searchForm" autocomplete="off">
+      <input type="text" id="phoneInput" placeholder="전화번호 (일부 입력 가능)" maxlength="13" pattern="[0-9]*" inputmode="numeric" required>
+      <button type="submit">검색</button>
+    </form>
+    <div class="result-wrap" id="resultWrap"></div>
+    <button class="back-btn" onclick="location.href='calendar.html'">캘린더로 돌아가기</button>
+  </div>
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://xxmtxuhcdzidhrefrvwf.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
+    );
+    const form = document.getElementById('searchForm');
+    const resultWrap = document.getElementById('resultWrap');
+
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('phoneInput').value.trim();
+      if(phone.length < 2) {
+        resultWrap.innerHTML = `<div class="no-result">2자리 이상 입력해 주세요.</div>`;
+        return;
+      }
+      resultWrap.innerHTML = '검색 중...';
+
+      // 전화번호 "포함" 검색 (대소문자 무관)
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .ilike('phone', `%${phone}%`)
+        .order('date', { ascending: false })
+        .order('time', { ascending: true });
+
+      if(error || !data) {
+        resultWrap.innerHTML = `<div class="no-result">검색 오류가 발생했습니다.</div>`;
+        return;
+      }
+      if(data.length === 0) {
+        resultWrap.innerHTML = `<div class="no-result">일치하는 예약 이력이 없습니다.</div>`;
+        return;
+      }
+
+      let tableHtml = `
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>예약번호</th>
+              <th>이름</th>
+              <th>연락처</th>
+              <th>날짜</th>
+              <th>시간</th>
+              <th>프로그램</th>
+              <th>옵션</th>
+              <th>인원</th>
+              <th>금액</th>
+              <th>결제</th>
+              <th>메모</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      data.forEach(r => {
+        let opts = [];
+        if(r.lesson) opts.push('강습');
+        if(r.board) opts.push('보드');
+        if(r.suit) opts.push('슈트');
+        if(r.shower) opts.push('샤워');
+        tableHtml += `
+          <tr>
+            <td>
+              <a class="edit-link" href="update.html?id=${r.id}" title="수정">${r.id ?? ''}</a>
+            </td>
+            <td>${r.name ?? ''}</td>
+            <td>${r.phone ?? ''}</td>
+            <td>${r.date ?? ''}</td>
+            <td>${r.time ?? ''}</td>
+            <td>${r.program ?? '-'}</td>
+            <td>${opts.join(', ') || '-'}</td>
+            <td>${r.people_count ?? ''}</td>
+            <td>${r.amount ?? ''}</td>
+            <td>${r.payment ?? ''}</td>
+            <td class="memo-cell">${r.memo ? r.memo.replace(/\n/g, '<br>') : ''}</td>
+          </tr>
+        `;
+      });
+      tableHtml += '</tbody></table></div>';
+      resultWrap.innerHTML = tableHtml;
+    };
+  </script>
+</body>
+</html>

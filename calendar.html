@@ -79,6 +79,23 @@
       box-shadow: 0 2px 8px rgba(29,144,255,0.09);
     }
     .list-btn:hover { background: #146fcc;}
+
+    .sear-btn {
+      background: #fc6e6e;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 20px;
+      font-size: 1em;
+      font-weight:600;
+      cursor: pointer;
+      transition: background 0.11s;
+      box-shadow: 0 2px 8px rgba(29,144,255,0.09);
+    }
+    .sear-btn:hover { background: #212121;}
+
+
+
     .calendar-wrap { margin: 0 auto; }
 
     .calendar {
@@ -169,6 +186,7 @@
         <button class="calendar-nav-btn" id="nextMonth">&#8594;</button>
       </div>
       <div class="page-btns">
+       <button class="sear-btn" onclick="location.href='search.html'">예약검색</button>
         <button class="list-btn" onclick="location.href='list.html'">전체 예약 목록</button>
         <button class="add-btn" onclick="location.href='input.html'">+ 예약 입력</button>
       </div>
