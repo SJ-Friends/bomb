@@ -79,7 +79,6 @@
       box-shadow: 0 2px 8px rgba(29,144,255,0.09);
     }
     .list-btn:hover { background: #146fcc;}
-
     .sear-btn {
       background: #fc6e6e;
       color: #fff;
@@ -93,11 +92,7 @@
       box-shadow: 0 2px 8px rgba(29,144,255,0.09);
     }
     .sear-btn:hover { background: #212121;}
-
-
-
     .calendar-wrap { margin: 0 auto; }
-
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -186,7 +181,7 @@
         <button class="calendar-nav-btn" id="nextMonth">&#8594;</button>
       </div>
       <div class="page-btns">
-       <button class="sear-btn" onclick="location.href='search.html'">예약검색</button>
+        <button class="sear-btn" onclick="location.href='search.html'">예약검색</button>
         <button class="list-btn" onclick="location.href='list.html'">전체 예약 목록</button>
         <button class="add-btn" onclick="location.href='input.html'">+ 예약 입력</button>
       </div>
@@ -201,7 +196,7 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://xxmtxuhcdzidhrefrvwf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
     );
@@ -210,7 +205,6 @@
     let currYear = today.getFullYear();
     let currMonth = today.getMonth();
 
-    // ← 이 함수만 바뀌었습니다!
     function fmtDate(d) {
       const y = d.getFullYear();
       const m = d.getMonth() + 1;
@@ -227,13 +221,13 @@
       const firstDay = new Date(currYear, currMonth, 1);
       const lastDay = new Date(currYear, currMonth + 1, 0);
       const fromDate = fmtDate(firstDay);
-      const toDate = fmtDate(lastDay); // 마지막날 포함
+      const toDate = fmtDate(lastDay);
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('reservations')
         .select('*')
         .gte('date', fromDate)
-        .lte('date', toDate)   // lte 사용 ✔️
+        .lte('date', toDate)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
