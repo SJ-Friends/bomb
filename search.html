@@ -126,7 +126,7 @@
     <button class="back-btn" onclick="location.href='calendar.html'">캘린더로 돌아가기</button>
   </div>
   <script>
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://xxmtxuhcdzidhrefrvwf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
     );
@@ -143,7 +143,7 @@
       resultWrap.innerHTML = '검색 중...';
 
       // 전화번호 "포함" 검색 (대소문자 무관)
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('reservations')
         .select('*')
         .ilike('phone', `%${phone}%`)

@@ -107,7 +107,7 @@
     </div>
   </div>
   <script>
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://xxmtxuhcdzidhrefrvwf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
     );
@@ -169,7 +169,7 @@
       if(!confirm('정말 삭제하시겠습니까?')) return;
       btn.disabled = true;
       btn.textContent = '삭제중...';
-      const { error } = await supabase.from('reservations').delete().eq('id', id);
+      const { error } = await supabaseClient.from('reservations').delete().eq('id', id);
       if(error) {
         alert('삭제 실패: ' + error.message);
         btn.disabled = false;

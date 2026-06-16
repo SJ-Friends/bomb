@@ -108,7 +108,7 @@
     </form>
   </div>
   <script>
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://xxmtxuhcdzidhrefrvwf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
     );
@@ -131,7 +131,7 @@
         payment: form.payment.value,
         memo: form.memo.value
       };
-      const { error } = await supabase.from('reservations').insert([data]);
+      const { error } = await supabaseClient.from('reservations').insert([data]);
       if (error) {
         alert('예약 등록 실패: ' + error.message);
       } else {

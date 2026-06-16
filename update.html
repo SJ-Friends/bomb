@@ -111,7 +111,7 @@
     </form>
   </div>
   <script>
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://xxmtxuhcdzidhrefrvwf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4bXR4dWhjZHppZGhyZWZydndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwODAyNTQsImV4cCI6MjA1OTY1NjI1NH0.TaCCDlJvKrif_pZY038Qkglip8h-Qqjp2w2GlKwvoVg'
     );
@@ -121,7 +121,7 @@
     const form = document.getElementById('resForm');
     async function load() {
       if(!id) { alert("잘못된 접근입니다"); return; }
-      const { data, error } = await supabase.from('reservations').select('*').eq('id', id).single();
+      const { data, error } = await supabaseClient.from('reservations').select('*').eq('id', id).single();
       if (error || !data) { alert("데이터 불러오기 실패"); return;}
       // 값 채우기
       form.name.value = data.name || '';
@@ -163,7 +163,7 @@ amount: form.amount.value ? Number(form.amount.value) : null,
 payment: form.payment.value,
 memo: form.memo.value
 };
-const { error } = await supabase.from('reservations').update(updated).eq('id', id);
+const { error } = await supabaseClient.from('reservations').update(updated).eq('id', id);
 if (error) {
 alert('수정 실패: ' + error.message);
 } else {
@@ -174,7 +174,7 @@ window.location.href = 'calendar.html';
 // 삭제
 document.getElementById('deleteBtn').onclick = async function() {
 if (!confirm('정말 삭제하시겠습니까?')) return;
-const { error } = await supabase.from('reservations').delete().eq('id', id);
+const { error } = await supabaseClient.from('reservations').delete().eq('id', id);
 if (error) {
 alert('삭제 실패: ' + error.message);
 } else {
