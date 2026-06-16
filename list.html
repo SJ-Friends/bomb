@@ -124,7 +124,7 @@
     async function renderTable() {
       const tbody = document.getElementById('resTbody');
       tbody.innerHTML = `<tr><td colspan="13">불러오는 중...</td></tr>`;
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('reservations')
         .select('*')
         .order('date', { ascending: false })
